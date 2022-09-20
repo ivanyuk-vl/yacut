@@ -20,7 +20,7 @@
                     {{ field(class="form-control form-control-lg py-2 mb-3", placeholder=field.label.text) }}
                     {% if field.errors %}
                       <p>
-                        {% for error in form.original_link.errors %}
+                        {% for error in field.errors %}
                           <span style="color:red">{{ error|escape }}</span>
                         {% endfor %}
                       </p>
