@@ -1,0 +1,6 @@
+from flask_wtf import FlaskForm
+
+
+class URLForm(FlaskForm):
+    original_link = ...
+    custom_id = ...
