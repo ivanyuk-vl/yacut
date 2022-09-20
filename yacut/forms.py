@@ -7,7 +7,7 @@ from .settings import MAX_URL_ID_LENGTH, MAX_URL_LENGTH
 LINK_LABEL = 'Длинная ссылка'
 ID_FOR_LINK = 'form-title'
 ID_LABEL = 'Ваш вариант короткой ссылки'
-ID_PATTERN = r"[\w\-.~:/?#[\]@!$&'()*+,;=%]+"
+ID_PATTERN = r"^[\w\-.~:/?#[\]@!$&'()*+,;=%]{1,16}$"
 ID_FOR_ID = 'form-link'
 
 

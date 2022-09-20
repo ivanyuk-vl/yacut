@@ -10,5 +10,4 @@ babel = Babel(app)
 babel.localeselector(lambda: app.config.get('LANGUAGE'))
 db = SQLAlchemy(app)
 
-
-from . import models, views
+from . import cli_commands, models, views
