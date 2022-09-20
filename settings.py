@@ -11,3 +11,4 @@ class Config(object):
         'SECRET_KEY',
         default='=vmk*r%v*_--m4++_*6&gl0mf55^e#4e+16e7@nqgeukt4&&w*'
     )
+    LANGUAGE = 'ru'
