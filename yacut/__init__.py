@@ -7,7 +7,7 @@ from settings import Config
 app = Flask(__name__)
 app.config.from_object(Config)
 babel = Babel(app)
-babel.localeselector(lambda: app.config['LANGUAGE'])
+babel.localeselector(lambda: app.config.get('LANGUAGE'))
 db = SQLAlchemy(app)
 
 
