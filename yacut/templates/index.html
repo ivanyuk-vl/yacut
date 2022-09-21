@@ -35,19 +35,26 @@
           </div>
         </div>
       </div>
-      <div class="container">
-        <div class="row ">
-          <div class="col-sm">
-          </div>
-          <div class="col-sm">
-            <p class="text-center">
-            <h5 class="text-center">Пример информационного сообщения</h5>
-            </p>
-          </div>
-          <div class="col-sm">
+      {% if short %}
+        <div class="container">
+          <div class="row ">
+            <div class="col-sm">
+            </div>
+            <div class="col-sm">
+              <p class="text-center">
+                <h5 class="text-center">
+                  Ваша новая ссылка готова:<br>
+                  <a href="{{ url_for('redirect_view', short=short) }}">
+                    {{ url_for('redirect_view', short=short, _external=True) }}
+                  </a>
+                </h5>
+              </p>
+            </div>
+            <div class="col-sm">
+            </div>
           </div>
         </div>
-      </div>
+      {% endif %}
     </section>
   </main>
 {% endblock content %}
