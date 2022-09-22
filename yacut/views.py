@@ -7,6 +7,7 @@ from . import app, db
 from .forms import SHORT_ID_PATTERN, URLForm
 from .models import URL_map
 from .settings import MAX_SHORT_ID_LENGTH
+from .utils import get_unique_short_id
 
 EXCEPTION_SEARCH_DATA = ('UNIQUE', 'URL_map.short')
 UNIQUE_SHORT_URL_ERROR = 'Такая короткая ссылка уже используется.'
@@ -19,7 +20,7 @@ def index_view():
         return render_template('index.html', form=form)
     url_map = URL_map(
         original=form.original_link.data,
-        short=form.custom_id.data
+        short=form.custom_id.data or get_unique_short_id()
     )
     db.session.add(url_map)
     try:

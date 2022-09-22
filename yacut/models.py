@@ -11,3 +11,17 @@ class URL_map(db.Model):
         db.String(MAX_SHORT_ID_LENGTH), unique=True, nullable=False
     )
     timestamp = db.Column(db.DateTime, default=datetime.now)
+
+    def to_dict(self):
+        return dict(
+            url=self.original,
+            short_link=self.short,
+        )
+
+    def url_to_dict(self):
+        return dict(url=self.original)
+
+    def from_dict(self, data):
+        for api_key, field in (('url', 'original'), ('short_id', 'short')):
+            if api_key in data:
+                setattr(self, field, data[api_key])
