@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from flask import url_for
+
 from . import db
 from .settings import MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH
 
@@ -15,7 +17,11 @@ class URL_map(db.Model):
     def to_dict(self):
         return dict(
             url=self.original,
-            short_link=self.short,
+            short_link=url_for(
+                'redirect_view',
+                short=self.short,
+                _external=True
+            )
         )
 
     def url_to_dict(self):

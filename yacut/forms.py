@@ -8,7 +8,8 @@ URL_LABEL = 'Длинная ссылка'
 ID_FOR_URL = 'form-title'
 SHORT_ID_LABEL = 'Ваш вариант короткой ссылки'
 # SHORT_ID_PATTERN = r"^[\w\-.~:/?#[\]@!$&'()*+,;=]+$"  # FIXME
-SHORT_ID_PATTERN = r'\w+$'
+SHORT_ID_PATTERN = r'^[0-9A-Za-z]+$'
+WRONG_SHORT_ID = 'Указано недопустимое имя для короткой ссылки'  # FIXME
 ID_FOR_SHORT_ID = 'form-link'
 
 
@@ -23,7 +24,7 @@ class URLForm(FlaskForm):
         (
             Optional(),
             Length(max=MAX_SHORT_ID_LENGTH),
-            Regexp(SHORT_ID_PATTERN),
+            Regexp(SHORT_ID_PATTERN, message=WRONG_SHORT_ID),
         ),
         id=ID_FOR_SHORT_ID,
     )
