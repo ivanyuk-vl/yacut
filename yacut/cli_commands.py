@@ -1,7 +1,7 @@
 from . import app, db
 
 
-@app.cli.command('create_all')  # FIXME
+@app.cli.command('create_all')
 def create_all_command():
-    """Создать таблицы в базе данных."""  # FIXME
+    """Создать таблицу в базе данных."""
     db.create_all()
