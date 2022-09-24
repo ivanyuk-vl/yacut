@@ -41,6 +41,6 @@ class URL_map(db.Model):
         return dict(url=self.original)
 
     def from_dict(self, data):
-        for api_key, field in (('url', 'original'), ('short_id', 'short')):
-            if api_key in data:
-                setattr(self, field, data[api_key])
+        for field in ('original', 'short'):
+            if field in data:
+                setattr(self, field, data[field])

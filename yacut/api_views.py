@@ -22,22 +22,20 @@ def map_short_id_to_url():
     data = request.get_json()
     if not data:
         raise APIUsageError(EMPTY_REQUEST_ERROR)
-    if 'url' not in data:
-        raise APIUsageError(URL_FIELD_REQUIRED_ERROR)  # FIXME
-    short_id = data.pop('custom_id', None)
-    if short_id and (
-        len(short_id) > MAX_SHORT_ID_LENGTH or  # FIXME
-        not re.match(SHORT_ID_PATTERN, short_id)
+    try:
+        data['original'] = data.pop('url')
+        # TODO add url validation
+    except KeyError:
+        raise APIUsageError(URL_FIELD_REQUIRED_ERROR)
+    short = data.pop('custom_id', None)
+    if short and (
+        len(short) > MAX_SHORT_ID_LENGTH or  # FIXME
+        not re.match(SHORT_ID_PATTERN, short)
     ):
         raise APIUsageError(SHORT_ID_NAME_ERROR)
-    if (
-        short_id and  # FIXME
-        URL_map.query.filter_by(short=short_id).first() is not None
-    ):
-        raise APIUsageError(
-            UNIQUE_SHORT_ID_ERROR.format(short=short_id)
-        )
-    data['short_id'] = short_id or get_unique_short_id()
+    if short and URL_map.query.filter_by(short=short).count():
+        raise APIUsageError(UNIQUE_SHORT_ID_ERROR.format(short=short))
+    data['short'] = short or get_unique_short_id()
     url_map = URL_map()
     url_map.from_dict(data)
     db.session.add(url_map)
@@ -50,4 +48,4 @@ def get_url(short):
     query = URL_map.query.filter_by(short=short)
     if len(short) > MAX_SHORT_ID_LENGTH or not query.count():
         raise APIUsageError(SHORT_ID_NOT_FOUND_ERROR, 404)
-    return jsonify(query.first().url_to_dict())  # FIXME
+    return jsonify(query.first().url_to_dict())
