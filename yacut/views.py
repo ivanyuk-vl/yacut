@@ -34,7 +34,7 @@ def index_view():
     return render_template('base.html', form=form, short=url_map.short)
 
 
-@app.route('/<string:short>', strict_slashes=False)
+@app.route('/<string:short>')
 def redirect_view(short):
     if (
         len(short) > MAX_SHORT_ID_LENGTH or
