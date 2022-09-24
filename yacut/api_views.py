@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from . import app, db
 from .error_handlers import APIUsageError
-from .forms import SHORT_ID_NAME_ERROR
+from .forms import SHORT_ID_NAME_ERROR, URLForm
 from .models import URL_map
 from .settings import MAX_SHORT_ID_LENGTH
 from .utils import get_unique_short_id
@@ -24,12 +24,15 @@ def map_short_id_to_url():
         raise APIUsageError(EMPTY_REQUEST_ERROR)
     try:
         data['original'] = data.pop('url')
-        # TODO add url validation
     except KeyError:
         raise APIUsageError(URL_FIELD_REQUIRED_ERROR)
+    form = URLForm(original_link=data['original'])
+    form.validate()
+    if form.original_link.errors:
+        raise APIUsageError(f'url: {form.original_link.errors}')
     short = data.pop('custom_id', None)
     if short and (
-        len(short) > MAX_SHORT_ID_LENGTH or  # FIXME
+        len(short) > MAX_SHORT_ID_LENGTH or
         not re.match(SHORT_ID_PATTERN, short)
     ):
         raise APIUsageError(SHORT_ID_NAME_ERROR)
@@ -39,7 +42,7 @@ def map_short_id_to_url():
     url_map = URL_map()
     url_map.from_dict(data)
     db.session.add(url_map)
-    db.session.commit()  # FIXME
+    db.session.commit()
     return jsonify(url_map.to_dict()), 201
 
 
