@@ -13,7 +13,7 @@ from .views import SHORT_ID_PATTERN
 EMPTY_REQUEST_ERROR = 'Отсутствует тело запроса'
 URL_FIELD_REQUIRED_ERROR = '"url" является обязательным полем!'
 SHORT_ID_NOT_FOUND_ERROR = 'Указанный id не найден'
-# pass test_url_already_exists:
+# pass tests/test_endpoints.py::test_url_already_exists:
 UNIQUE_SHORT_ID_ERROR = 'Имя "{short}" уже занято.'
 
 
@@ -50,4 +50,4 @@ def get_url(short):
     query = URL_map.query.filter_by(short=short)
     if len(short) > MAX_SHORT_ID_LENGTH or not query.count():
         raise APIUsageError(SHORT_ID_NOT_FOUND_ERROR, 404)
-    return jsonify(query.one().url_to_dict())  # FIXME
+    return jsonify(query.first().url_to_dict())  # FIXME

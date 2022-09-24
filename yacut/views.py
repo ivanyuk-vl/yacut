@@ -8,15 +8,19 @@ from .models import URL_map
 from .settings import MAX_SHORT_ID_LENGTH
 from .utils import get_unique_short_id
 
-# pass test_duplicated_url_in_form:
+# pass tests/test_views.py::test_duplicated_url_in_form:
 UNIQUE_SHORT_ID_ERROR = 'Имя {short} уже занято!'
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index_view():
     form = URLForm()
+
+    def get_render_result(short=None):
+        return render_template('base.html', form=form, short=short)
+
     if not form.validate_on_submit():
-        return render_template('base.html', form=form)
+        return get_render_result()
     if (
         form.custom_id.data and
         URL_map.query.filter_by(short=form.custom_id.data).count()
@@ -24,14 +28,14 @@ def index_view():
         form.custom_id.errors.append(
             UNIQUE_SHORT_ID_ERROR.format(short=form.custom_id.data)
         )
-        return render_template('base.html', form=form)
+        return get_render_result()
     url_map = URL_map(
         original=form.original_link.data,
         short=form.custom_id.data or get_unique_short_id()
     )
     db.session.add(url_map)
     db.session.commit()
-    return render_template('base.html', form=form, short=url_map.short)
+    return get_render_result(short=url_map.short)
 
 
 @app.route('/<string:short>')
@@ -42,5 +46,5 @@ def redirect_view(short):
     ):
         abort(404)
     return redirect(
-        URL_map.query.filter_by(short=short).first_or_404().original  # FIXME
+        URL_map.query.filter_by(short=short).first_or_404().original
     )

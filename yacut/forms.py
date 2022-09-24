@@ -8,7 +8,7 @@ URL_LABEL = 'Длинная ссылка'
 ID_FOR_URL = 'form-title'
 SHORT_ID_LABEL = 'Ваш вариант короткой ссылки'
 SHORT_ID_PATTERN = r'^[0-9A-Za-z]+$'
-SHORT_ID_NAME_ERROR = 'Указано недопустимое имя для короткой ссылки'  # FIXME
+SHORT_ID_NAME_ERROR = 'Указано недопустимое имя для короткой ссылки'
 ID_FOR_SHORT_ID = 'form-link'
 
 
