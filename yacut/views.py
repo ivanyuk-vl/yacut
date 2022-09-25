@@ -21,10 +21,7 @@ def index_view():
 
     if not form.validate_on_submit():
         return get_render_result()
-    if (
-        form.custom_id.data and
-        URL_map.query.filter_by(short=form.custom_id.data).count()
-    ):
+    if form.custom_id.data and URL_map.is_short_exists(form.custom_id.data):
         form.custom_id.errors.append(
             UNIQUE_SHORT_ID_ERROR.format(short=form.custom_id.data)
         )

@@ -19,6 +19,10 @@ class URL_map(db.Model):
     )
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
+    @staticmethod
+    def is_short_exists(short):
+        return bool(URL_map.query.filter_by(short=short).count())
+
     def __repr__(self):
         return URL_MAP_REPR.format(
             id=self.id,

@@ -6,9 +6,8 @@ from . import app, db
 from .error_handlers import APIUsageError
 from .forms import SHORT_ID_NAME_ERROR, URLForm
 from .models import URL_map
-from .settings import MAX_SHORT_ID_LENGTH
+from .settings import MAX_SHORT_ID_LENGTH, SHORT_ID_PATTERN
 from .utils import get_unique_short_id
-from .views import SHORT_ID_PATTERN
 
 EMPTY_REQUEST_ERROR = 'Отсутствует тело запроса'
 URL_FIELD_REQUIRED_ERROR = '"url" является обязательным полем!'
@@ -48,7 +47,7 @@ def map_short_id_to_url():
 
 @app.route('/api/id/<string:short>')
 def get_url(short):
-    query = URL_map.query.filter_by(short=short)
-    if len(short) > MAX_SHORT_ID_LENGTH or not query.count():
+    if len(short) > MAX_SHORT_ID_LENGTH or not URL_map.is_short_exists(short):
         raise APIUsageError(SHORT_ID_NOT_FOUND_ERROR, 404)
-    return jsonify(query.first().url_to_dict())
+    return jsonify(URL_map.query.filter_by(short=short).first().url_to_dict())
+    # FIXME

@@ -1,14 +1,11 @@
-import re
-
 from flask_wtf import FlaskForm
 from wtforms.fields import StringField, URLField
 from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 
-from .settings import CHARS, MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH
+from .settings import MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH, SHORT_ID_PATTERN
 
 URL_LABEL = 'Длинная ссылка'
 SHORT_ID_LABEL = 'Ваш вариант короткой ссылки'
-SHORT_ID_PATTERN = '^[{}]+$'.format(re.escape(CHARS))
 SHORT_ID_NAME_ERROR = 'Указано недопустимое имя для короткой ссылки'
 
 
