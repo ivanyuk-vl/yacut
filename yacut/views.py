@@ -17,7 +17,7 @@ def index_view():
     form = URLForm()
 
     def get_render_result(short=None):
-        return render_template('base.html', form=form, short=short)
+        return render_template('index.html', form=form, short=short)
 
     if not form.validate_on_submit():
         return get_render_result()
