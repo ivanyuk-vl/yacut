@@ -1,9 +1,10 @@
+import re
 from datetime import datetime
 
 from flask import url_for
 
 from . import db
-from .settings import MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH
+from .settings import MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH, SHORT_ID_PATTERN
 
 URL_MAP_REPR = (
     'URL_map(id={id!r}, original={original!r}, short={short!r}, '
@@ -22,6 +23,27 @@ class URL_map(db.Model):
     @staticmethod
     def is_short_exists(short):
         return bool(URL_map.query.filter_by(short=short).count())
+
+    @staticmethod
+    def validate_short(short):
+        if not short:
+            return short  # add random generated short
+        if len(short) > MAX_SHORT_ID_LENGTH:
+            raise Exception()
+        if not re.match(SHORT_ID_PATTERN, short):
+            raise Exception()
+        if URL_map.is_short_exists(short):
+            raise Exception()
+        return short
+
+    @staticmethod
+    def add_to_db(data):
+        if not data:
+            raise Exception()
+        if 'original' not in data:
+            raise Exception()
+        short = URL_map.validate_short(data.get('short'))
+        short  # FIXME
 
     def __repr__(self):
         return URL_MAP_REPR.format(
