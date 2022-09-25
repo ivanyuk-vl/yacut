@@ -1,10 +1,13 @@
 import re
 from datetime import datetime
+from random import choices
 
-from flask import url_for
+from flask import abort, url_for
 
 from . import db
-from .settings import MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH, SHORT_ID_PATTERN
+from .settings import (LIMIT_GENERATE_SHORT_ATTEMTS,
+                       MAX_RANDOM_SHORT_ID_LENGTH, MAX_SHORT_ID_LENGTH,
+                       MAX_URL_LENGTH, SHORT_ID_CHARS, SHORT_ID_PATTERN)
 
 URL_MAP_REPR = (
     'URL_map(id={id!r}, original={original!r}, short={short!r}, '
@@ -20,29 +23,44 @@ class URL_map(db.Model):
     )
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
-    @staticmethod
-    def is_short_exists(short):
-        return bool(URL_map.query.filter_by(short=short).count())
+    @classmethod
+    def is_short_exists(cls, short):
+        return bool(cls.query.filter_by(short=short).count())
+
+    @classmethod
+    def get_unique_short_id(cls):
+        for attempt in range(LIMIT_GENERATE_SHORT_ATTEMTS):
+            short = ''.join(
+                choices(SHORT_ID_CHARS, k=MAX_RANDOM_SHORT_ID_LENGTH)
+            )
+            if not cls.is_short_exists(short):
+                return short
+        return abort(500)  # FIXME
 
     @staticmethod
-    def validate_short(short):
+    def validate_original(original):
+        pass  # FIXME
+
+    @classmethod
+    def validate_or_generate_short(cls, short):
         if not short:
-            return short  # add random generated short
+            return cls.get_unique_short_id()
         if len(short) > MAX_SHORT_ID_LENGTH:
             raise Exception()
         if not re.match(SHORT_ID_PATTERN, short):
             raise Exception()
-        if URL_map.is_short_exists(short):
+        if cls.is_short_exists(short):
             raise Exception()
         return short
 
-    @staticmethod
-    def add_to_db(data):
+    @classmethod
+    def add_to_db(cls, data):
         if not data:
             raise Exception()
         if 'original' not in data:
             raise Exception()
-        short = URL_map.validate_short(data.get('short'))
+        # TODO add url validator
+        short = cls.validate_or_generate_short(data.get('short'))
         short  # FIXME
 
     def __repr__(self):
