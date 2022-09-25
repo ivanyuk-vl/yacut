@@ -1,12 +1,10 @@
 import random
 
-
 from flask import abort
 
 from .models import URL_map
-from .settings import (
-    CHARS, LIMIT_GENERATE_SHORT_ATTEMTS, MAX_RANDOM_SHORT_ID_LENGTH
-)
+from .settings import (CHARS, LIMIT_GENERATE_SHORT_ATTEMTS,
+                       MAX_RANDOM_SHORT_ID_LENGTH)
 
 
 def get_unique_short_id():
@@ -16,4 +14,4 @@ def get_unique_short_id():
         )
         if not URL_map.query.filter_by(short=short).count():
             return short
-    abort(500)  # FIXME
+    return abort(500)  # FIXME
