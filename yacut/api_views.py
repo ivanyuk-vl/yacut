@@ -2,7 +2,6 @@ from flask import jsonify, request
 from werkzeug.exceptions import HTTPException
 
 from . import app
-from .error_handlers import APIUsageError
 from .exceptions import (APIUsageError, GenerateShortError,
                          OriginalLenghtError, OriginalRequiredError,
                          ShortAlreadyExistsError, ShortLenghtError,
