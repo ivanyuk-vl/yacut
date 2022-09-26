@@ -1,29 +1,46 @@
 from flask_wtf import FlaskForm
 from wtforms.fields import StringField, URLField
-from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
+from .exceptions import (GenerateShortError, OriginalLenghtError,
+                         OriginalRequiredError, ShortAlreadyExistsError,
+                         ShortLenghtError, ValidateOriginalError,
+                         ValidateShortError)
+from .models import URL_map
 from .settings import MAX_SHORT_ID_LENGTH, MAX_URL_LENGTH
 
 URL_LABEL = 'Длинная ссылка'
-ID_FOR_URL = 'form-title'
 SHORT_ID_LABEL = 'Ваш вариант короткой ссылки'
-SHORT_ID_PATTERN = r'^[0-9A-Za-z]+$'
-SHORT_ID_NAME_ERROR = 'Указано недопустимое имя для короткой ссылки'
-ID_FOR_SHORT_ID = 'form-link'
 
 
 class URLForm(FlaskForm):
     original_link = URLField(
         URL_LABEL,
-        (DataRequired(), Length(max=MAX_URL_LENGTH), URL()),
-        id=ID_FOR_URL,
+        (DataRequired(), Length(max=MAX_URL_LENGTH)),
+        id='form-title',
     )
     custom_id = StringField(
         SHORT_ID_LABEL,
         (
             Optional(),
             Length(max=MAX_SHORT_ID_LENGTH),
-            Regexp(SHORT_ID_PATTERN, message=SHORT_ID_NAME_ERROR),
         ),
-        id=ID_FOR_SHORT_ID,
+        id='form-link',
     )
+
+    def validate_original_link(self, field):
+        try:
+            URL_map.validate_original(field.data)
+        except (OriginalLenghtError, OriginalRequiredError):
+            pass
+        except ValidateOriginalError as exc:
+            raise ValidationError(exc)
+
+    def validate_custom_id(self, field):
+        try:
+            URL_map.validate_short(field.data)
+        except ShortLenghtError:
+            pass
+        except (GenerateShortError, ShortAlreadyExistsError,
+                ValidateShortError) as exc:
+            raise ValidationError(exc)
