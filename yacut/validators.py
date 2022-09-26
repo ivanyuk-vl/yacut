@@ -1,4 +1,6 @@
-from wtforms.validators import URL, ValidationError
+from wtforms.validators import URL
+
+from .exceptions import ValidateOriginalError
 
 INVALID_URL_ERROR = 'Неверный URL.'
 
@@ -9,5 +11,5 @@ class URLValidator(URL):
 
     def __call__(self, url):
         match = self.regex.match(url or '')
-        if not (match or self.validate_hostname(match.group('host'))):
-            raise ValidationError(INVALID_URL_ERROR)
+        if not(match and self.validate_hostname(match.group('host'))):
+            raise ValidateOriginalError(INVALID_URL_ERROR)

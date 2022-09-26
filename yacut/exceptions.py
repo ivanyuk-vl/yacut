@@ -11,11 +11,11 @@ class APIUsageError(Exception):
         return dict(message=self.message)
 
 
-class ValidateOriginalError(ValueError):  # FIXME
+class ValidateOriginalError(ValueError):
     pass
 
 
-class ValidateShortError(ValueError):  # FIXME
+class ValidateShortError(ValueError):
     pass
 
 
@@ -23,5 +23,19 @@ class OriginalRequiredError(ValueError):
     pass
 
 
-class ShortExistsError(Exception):  # FIXME find parent
-    pass  # TODO add short_id_name
+class ShortAlreadyExistsError(Exception):
+    def __init__(self, short, *args):
+        super().__init__(*args)
+        self.short = short
+
+
+class ShortLenghtError(ValueError):
+    pass
+
+
+class OriginalLenghtError(ValueError):
+    pass
+
+
+class GenerateShortError(Exception):
+    pass
