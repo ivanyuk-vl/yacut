@@ -2,12 +2,15 @@ import re
 from datetime import datetime
 from random import choices
 
-from flask import abort, url_for
+from flask import url_for
 
 from . import db
+from .exceptions import (OriginalRequiredError, ShortExistsError,
+                         ValidateShortError)
 from .settings import (LIMIT_GENERATE_SHORT_ATTEMTS,
                        MAX_RANDOM_SHORT_ID_LENGTH, MAX_SHORT_ID_LENGTH,
                        MAX_URL_LENGTH, SHORT_ID_CHARS, SHORT_ID_PATTERN)
+from .validators import URLValidator
 
 URL_MAP_REPR = (
     'URL_map(id={id!r}, original={original!r}, short={short!r}, '
@@ -25,7 +28,7 @@ class URL_map(db.Model):
 
     @classmethod
     def is_short_exists(cls, short):
-        return bool(cls.query.filter_by(short=short).count())
+        return bool(short and cls.query.filter_by(short=short).count())
 
     @classmethod
     def get_unique_short_id(cls):
@@ -35,33 +38,41 @@ class URL_map(db.Model):
             )
             if not cls.is_short_exists(short):
                 return short
-        return abort(500)  # FIXME
+        raise Exception()  # FIXME
 
     @staticmethod
     def validate_original(original):
-        pass  # FIXME
+        if not original:
+            raise OriginalRequiredError()
+        URLValidator()(original)
+        return original
+
+    @classmethod
+    def validate_short(cls, short):
+        short = short or ''  # FIXME
+        if len(short) > MAX_SHORT_ID_LENGTH:
+            raise ValidateShortError()  # TODO change exception?
+        if not re.match(SHORT_ID_PATTERN, short):
+            raise ValidateShortError()
+        if cls.is_short_exists(short):
+            raise ShortExistsError()
+        return short
 
     @classmethod
     def validate_or_generate_short(cls, short):
         if not short:
             return cls.get_unique_short_id()
-        if len(short) > MAX_SHORT_ID_LENGTH:
-            raise Exception()
-        if not re.match(SHORT_ID_PATTERN, short):
-            raise Exception()
-        if cls.is_short_exists(short):
-            raise Exception()
-        return short
+        return cls.validate_short(short)
 
     @classmethod
     def add_to_db(cls, data):
-        if not data:
-            raise Exception()
-        if 'original' not in data:
-            raise Exception()
-        # TODO add url validator
-        short = cls.validate_or_generate_short(data.get('short'))
-        short  # FIXME
+        url_map = cls(
+            original=cls.validate_original(data.get('original')),
+            short=cls.validate_or_generate_short(data.get('short'))
+        )
+        db.session.add(url_map)
+        db.session.commit()
+        return url_map
 
     def __repr__(self):
         return URL_MAP_REPR.format(

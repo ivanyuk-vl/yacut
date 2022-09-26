@@ -4,6 +4,8 @@ from flask import jsonify, request
 
 from . import app, db
 from .error_handlers import APIUsageError
+from .exceptions import (OriginalRequiredError, ShortExistsError,
+                         ValidateShortError)
 from .forms import SHORT_ID_NAME_ERROR, URLForm
 from .models import URL_map
 from .settings import MAX_SHORT_ID_LENGTH, SHORT_ID_PATTERN
@@ -21,26 +23,13 @@ def map_short_id_to_url():
     if not data:
         raise APIUsageError(EMPTY_REQUEST_ERROR)
     try:
-        data['original'] = data.pop('url')
-    except KeyError:
-        raise APIUsageError(URL_FIELD_REQUIRED_ERROR)
-    form = URLForm(original_link=data['original'])
-    form.validate()
-    if form.original_link.errors:
-        raise APIUsageError(f'url: {form.original_link.errors}')
-    short = data.pop('custom_id', None)
-    if short and (
-        len(short) > MAX_SHORT_ID_LENGTH or
-        not re.match(SHORT_ID_PATTERN, short)
-    ):
+        url_map = URL_map.add_to_db(URL_map.from_dict())
+    except ValidateShortError:
         raise APIUsageError(SHORT_ID_NAME_ERROR)
-    if short and URL_map.query.filter_by(short=short).count():
-        raise APIUsageError(UNIQUE_SHORT_ID_ERROR.format(short=short))
-    data['short'] = short or URL_map.get_unique_short_id()
-    url_map = URL_map()
-    url_map.from_dict(data)
-    db.session.add(url_map)
-    db.session.commit()
+    except ShortExistsError:
+        raise APIUsageError(UNIQUE_SHORT_ID_ERROR)
+    except OriginalRequiredError:
+        raise APIUsageError(URL_FIELD_REQUIRED_ERROR)
     return jsonify(url_map.to_dict()), 201
 
 

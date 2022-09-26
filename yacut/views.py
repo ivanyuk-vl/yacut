@@ -36,6 +36,7 @@ def index_view():
 
 @app.route('/<string:short>')
 def redirect_view(short):
+    # TODO URL_map.validate_short(short)
     if (
         len(short) > MAX_SHORT_ID_LENGTH or
         not re.match(SHORT_ID_PATTERN, short)
