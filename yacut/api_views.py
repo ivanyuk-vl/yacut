@@ -9,7 +9,6 @@ from .exceptions import (APIUsageError, GenerateShortError,
 from .models import INVALID_SHORT, URL_map
 
 SHORT_ID_NOT_FOUND_ERROR = 'Указанный id не найден'
-# pass tests/test_endpoints.py::test_url_already_exists:
 UNIQUE_SHORT_ID_ERROR = 'Имя "{short}" уже занято.'
 
 
