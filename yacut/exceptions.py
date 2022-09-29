@@ -29,11 +29,17 @@ class ShortAlreadyExistsError(Exception):
         self.short = short
 
 
-class ShortLenghtError(ValueError):
+class LengthError(ValueError):
+    def __init__(self, max_length, *args):
+        super().__init__(*args)
+        self.max_length = max_length
+
+
+class ShortLengthError(LengthError):
     pass
 
 
-class OriginalLenghtError(ValueError):
+class OriginalLengthError(LengthError):
     pass
 
 

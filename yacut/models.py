@@ -6,8 +6,8 @@ from flask import url_for
 
 from . import db
 from .exceptions import (APIUsageError, GenerateShortError,
-                         OriginalLenghtError, OriginalRequiredError,
-                         ShortAlreadyExistsError, ShortLenghtError,
+                         OriginalLengthError, OriginalRequiredError,
+                         ShortAlreadyExistsError, ShortLengthError,
                          ValidateShortError)
 from .settings import (LIMIT_GENERATE_SHORT_ATTEMTS,
                        MAX_RANDOM_SHORT_ID_LENGTH, MAX_SHORT_ID_LENGTH,
@@ -17,12 +17,12 @@ from .validators import URLValidator
 EMPTY_REQUEST_ERROR = 'Отсутствует тело запроса'
 GENERATE_SHORT_ERROR = ('Не удалось сгенерировать короткую ссылку. '
                         'Напишите свой вариант.')
-# pass tests/test_views.py::test_duplicated_url_in_form:
 UNIQUE_SHORT_ERROR = 'Имя {short} уже занято!'
 URL_FIELD_REQUIRED_ERROR = '"url" является обязательным полем!'
-URL_LENGTH_ERROR = '"url" не должeн содержать более {url_length} символов.'
+URL_LENGTH_ERROR = ('"url" не должeн содержать более {} '
+                    'символов.').format(MAX_URL_LENGTH)
 SHORT_LENGTH_ERROR = ('Короткая ссылка не должна содержать более '
-                      '{short_length} символов.')
+                      '{} символов.').format(MAX_SHORT_ID_LENGTH)
 INVALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
 URL_MAP_REPR = (
     'URL_map(id={id!r}, original={original!r}, short={short!r}, '
@@ -38,17 +38,17 @@ class URL_map(db.Model):
     )
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
-    @classmethod
-    def is_short_exists(cls, short):
-        return bool(short and cls.query.filter_by(short=short).count())
+    @staticmethod
+    def is_short_exists(short):
+        return bool(short and URL_map.query.filter_by(short=short).count())
 
-    @classmethod
-    def get_unique_short_id(cls):
+    @staticmethod
+    def get_unique_short_id():
         for attempt in range(LIMIT_GENERATE_SHORT_ATTEMTS):
             short = ''.join(
                 choices(SHORT_ID_CHARS, k=MAX_RANDOM_SHORT_ID_LENGTH)
             )
-            if not cls.is_short_exists(short):
+            if not URL_map.is_short_exists(short):
                 return short
         raise GenerateShortError(GENERATE_SHORT_ERROR)
 
@@ -60,46 +60,48 @@ class URL_map(db.Model):
         if not original:
             raise OriginalRequiredError(URL_FIELD_REQUIRED_ERROR)
         if len(original) > MAX_URL_LENGTH:
-            OriginalLenghtError(URL_LENGTH_ERROR.format(MAX_URL_LENGTH))
+            OriginalLengthError(MAX_URL_LENGTH, URL_LENGTH_ERROR)
         URLValidator()(original)
         return original
 
-    @classmethod
-    def validate_short(cls, short, exists_check=True):
+    @staticmethod
+    def validate_short(short, exists_check=True):
         short = short or ''
+        if not short:
+            return short
         if len(short) > MAX_SHORT_ID_LENGTH:
-            raise ShortLenghtError(
-                SHORT_LENGTH_ERROR.format(short_length=MAX_SHORT_ID_LENGTH)
-            )
+            raise ShortLengthError(MAX_SHORT_ID_LENGTH, SHORT_LENGTH_ERROR)
         if not re.match(SHORT_ID_PATTERN, short):
             raise ValidateShortError(INVALID_SHORT)
-        if exists_check and cls.is_short_exists(short):
+        if exists_check and URL_map.is_short_exists(short):
             raise ShortAlreadyExistsError(
                 short, UNIQUE_SHORT_ERROR.format(short=short)
             )
         return short
 
-    @classmethod
-    def validate_or_generate_short(cls, short, validate=True):
+    @staticmethod
+    def validate_or_generate_short(short, validate=True):
         if not short:
-            return cls.get_unique_short_id()
+            return URL_map.get_unique_short_id()
         if not validate:
             return short
-        return cls.validate_short(short)
+        return URL_map.validate_short(short)
 
-    @classmethod
-    def add_to_db(cls, validate=True, **data,):
-        url_map = cls(
-            original=cls.validate_original(data.get('original'), validate),
-            short=cls.validate_or_generate_short(data.get('short'), validate)
+    @staticmethod
+    def add_to_db(validate=True, **data,):
+        url_map = URL_map(
+            original=URL_map.validate_original(data.get('original'), validate),
+            short=URL_map.validate_or_generate_short(
+                data.get('short'), validate
+            )
         )
         db.session.add(url_map)
         db.session.commit()
         return url_map
 
-    @classmethod
-    def get_record_by_short(cls, short):
-        return cls.query.filter_by(short=short).first_or_404()
+    @staticmethod
+    def get_record_by_short(short):
+        return URL_map.query.filter_by(short=short).first_or_404()
 
     def __repr__(self):
         return URL_MAP_REPR.format(

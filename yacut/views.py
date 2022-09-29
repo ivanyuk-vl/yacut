@@ -1,7 +1,7 @@
 from flask import abort, redirect, render_template
 
 from . import app
-from .exceptions import ShortLenghtError, ValidateShortError
+from .exceptions import ShortLengthError, ValidateShortError
 from .forms import URLForm
 from .models import URL_map
 
@@ -28,5 +28,5 @@ def redirect_view(short):
         return redirect(URL_map.get_record_by_short(
             URL_map.validate_short(short, exists_check=False)
         ).original)
-    except (ShortLenghtError, ValidateShortError):
+    except (ShortLengthError, ValidateShortError):
         abort(404)
