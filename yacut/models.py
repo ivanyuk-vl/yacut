@@ -6,8 +6,8 @@ from flask import url_for
 
 from . import db
 from .exceptions import (APIUsageError, GenerateShortError,
-                         OriginalLenghtError, OriginalRequiredError,
-                         ShortAlreadyExistsError, ShortLenghtError,
+                         OriginalLengthError, OriginalRequiredError,
+                         ShortAlreadyExistsError, ShortLengthError,
                          ValidateShortError)
 from .settings import (LIMIT_GENERATE_SHORT_ATTEMTS,
                        MAX_RANDOM_SHORT_ID_LENGTH, MAX_SHORT_ID_LENGTH,
@@ -56,18 +56,21 @@ class URL_map(db.Model):
     def validate_original(original, validate=True):
         if not validate:
             return original
+        original = original or ''
         if not original:
             raise OriginalRequiredError(URL_FIELD_REQUIRED_ERROR)
         if len(original) > MAX_URL_LENGTH:
-            OriginalLenghtError(URL_LENGTH_ERROR)
+            OriginalLengthError(MAX_URL_LENGTH, URL_LENGTH_ERROR)
         URLValidator()(original)
         return original
 
     @staticmethod
     def validate_short(short, exists_check=True):
         short = short or ''
+        if not short:
+            return short
         if len(short) > MAX_SHORT_ID_LENGTH:
-            raise ShortLenghtError(SHORT_LENGTH_ERROR)
+            raise ShortLengthError(MAX_SHORT_ID_LENGTH, SHORT_LENGTH_ERROR)
         if not re.match(SHORT_ID_PATTERN, short):
             raise ValidateShortError(INVALID_SHORT)
         if exists_check and URL_map.is_short_exists(short):
