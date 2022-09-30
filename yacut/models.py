@@ -9,9 +9,9 @@ from .exceptions import (APIUsageError, GenerateShortError,
                          OriginalLengthError, OriginalRequiredError,
                          ShortAlreadyExistsError, ShortLengthError,
                          ValidateShortError)
-from .settings import (LIMIT_GENERATE_SHORT_ATTEMTS,
-                       MAX_RANDOM_SHORT_ID_LENGTH, MAX_SHORT_ID_LENGTH,
-                       MAX_URL_LENGTH, SHORT_ID_CHARS, SHORT_ID_PATTERN)
+from .settings import (LIMIT_GENERATE_SHORT_ATTEMTS, MAX_SHORT_ID_LENGTH,
+                       MAX_URL_LENGTH, RANDOM_SHORT_ID_LENGTH, SHORT_ID_CHARS,
+                       SHORT_ID_PATTERN)
 from .validators import URLValidator
 
 EMPTY_REQUEST_ERROR = 'Отсутствует тело запроса'
@@ -19,10 +19,10 @@ GENERATE_SHORT_ERROR = ('Не удалось сгенерировать коро
                         'Напишите свой вариант.')
 UNIQUE_SHORT_ERROR = 'Имя {short} уже занято!'
 URL_FIELD_REQUIRED_ERROR = '"url" является обязательным полем!'
-URL_LENGTH_ERROR = ('"url" не должeн содержать более {} '
-                    'символов.').format(MAX_URL_LENGTH)
+URL_LENGTH_ERROR = (f'"url" не должeн содержать более {MAX_URL_LENGTH} '
+                    'символов.')
 SHORT_LENGTH_ERROR = ('Короткая ссылка не должна содержать более '
-                      '{} символов.').format(MAX_SHORT_ID_LENGTH)
+                      f'{MAX_SHORT_ID_LENGTH} символов.')
 INVALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
 URL_MAP_REPR = (
     'URL_map(id={id!r}, original={original!r}, short={short!r}, '
@@ -46,7 +46,7 @@ class URL_map(db.Model):
     def get_unique_short_id():
         for attempt in range(LIMIT_GENERATE_SHORT_ATTEMTS):
             short = ''.join(
-                choices(SHORT_ID_CHARS, k=MAX_RANDOM_SHORT_ID_LENGTH)
+                choices(SHORT_ID_CHARS, k=RANDOM_SHORT_ID_LENGTH)
             )
             if not URL_map.is_short_exists(short):
                 return short
@@ -88,20 +88,22 @@ class URL_map(db.Model):
         return URL_map.validate_short(short)
 
     @staticmethod
-    def add_to_db(validate=True, **data,):
+    def add_to_db(original, short='', validate=True):
         url_map = URL_map(
-            original=URL_map.validate_original(data.get('original'), validate),
-            short=URL_map.validate_or_generate_short(
-                data.get('short'), validate
-            )
+            original=URL_map.validate_original(original, validate),
+            short=URL_map.validate_or_generate_short(short, validate)
         )
         db.session.add(url_map)
         db.session.commit()
         return url_map
 
     @staticmethod
-    def get_record_by_short(short):
+    def get_by_short_or_404(short):
         return URL_map.query.filter_by(short=short).first_or_404()
+
+    @staticmethod
+    def get_by_short_or_none(short):
+        return URL_map.query.filter_by(short=short).first()
 
     def __repr__(self):
         return URL_MAP_REPR.format(
