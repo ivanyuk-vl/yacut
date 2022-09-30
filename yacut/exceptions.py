@@ -23,7 +23,7 @@ class OriginalRequiredError(ValueError):
     pass
 
 
-class ShortAlreadyExistsError(Exception):
+class ShortAlreadyExistsError(ValueError):
     def __init__(self, short, *args):
         super().__init__(*args)
         self.short = short

@@ -16,8 +16,8 @@ def index_view():
     if not form.validate_on_submit():
         return _render_template()
     return _render_template(URL_map.add_to_db(
-        original=form.original_link.data,
-        short=form.custom_id.data,
+        form.original_link.data,
+        form.custom_id.data,
         validate=False
     ).short)
 
@@ -25,7 +25,7 @@ def index_view():
 @app.route('/<string:short>')
 def redirect_view(short):
     try:
-        return redirect(URL_map.get_record_by_short(
+        return redirect(URL_map.get_by_short_or_404(
             URL_map.validate_short(short, exists_check=False)
         ).original)
     except (ShortLengthError, ValidateShortError):

@@ -33,7 +33,7 @@ def map_short_id_to_url():
 @app.route('/api/id/<string:short>')
 def get_url(short):
     try:
-        return jsonify(URL_map.get_record_by_short(
+        return jsonify(URL_map.get_by_short_or_404(
             short=URL_map.validate_short(short, exists_check=False)
         ).url_to_dict())
     except (ShortLengthError, ValidateShortError, HTTPException):
